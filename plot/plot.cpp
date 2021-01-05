@@ -9,68 +9,62 @@
 #include <string>
 #include <QDebug>
 
+
 plot::plot(QWidget *parent) :
     QMainWindow(parent), ui(new Ui::plot)
 {
     ui->setupUi(this);
-    ui->display_image->setScaledContents(true);
     ui->display_image->installEventFilter(this);
+    ui->widget->setMouseTracking(true);
+    ui->centralWidget->setMouseTracking(true);  
     setFocusPolicy(Qt::StrongFocus);
-    ui->centralWidget->setMouseTracking(true);
-    setMouseTracking(true);
-    ui->display_image->setMouseTracking(true);
+    setMouseTracking(true);    
     connect(ui->open_floder,SIGNAL(clicked(bool)),this,SLOT(openFloder()));
     connect(ui->save,SIGNAL(clicked(bool)),this,SLOT(save()));
-    connect(ui->last_img,SIGNAL(clicked(bool)),this,SLOT(preImg()));
+    connect(ui->pre_img,SIGNAL(clicked(bool)),this,SLOT(preImg()));
     connect(ui->next_img,SIGNAL(clicked(bool)),this,SLOT(nextImg()));
     connect(ui->delete_button,SIGNAL(clicked(bool)),this,SLOT(deleteRect()));
     connect(ui->skip,SIGNAL(clicked(bool)),this,SLOT(skipImg()));
     connect(ui->exit,SIGNAL(clicked(bool)),this,SLOT(windowClose()));
     m_imgid = 0;
-    //counterPoint=0;
-    m_numrects = 0;
+    m_img.init(ui->display_image);
+    m_rects.init(ui->rectsTable);
     m_labels.init(ui->labels);
-
 }
+
 plot::~plot()
 {
     delete ui;
 }
+
 void plot::openFloder() //打开图片文件夹
 {
-    m_filepath=QFileDialog::getExistingDirectory(this,tr("图片路径"),".");
-    if(m_filepath.isEmpty()){
+    QString filepath=QFileDialog::getExistingDirectory(this,tr("图片路径"),".");
+    if(filepath.isEmpty()){
         return;
     }else{
-        m_rects.setFileroot(m_filepath);
+        m_rects.setFileRoot(filepath);
+        m_img.setFileRoot(filepath);
         ui->caption->setText("初始化...");
-        QDir dir(m_filepath);
+        QDir dir(filepath);
         QStringList namefilters;
         namefilters<<"*.jpg"<<"*.png"<<"*.jpeg";
         m_imgnamelists = dir.entryList(namefilters,QDir::Files|QDir::Readable,QDir::Name);
+        for(int i=0; i<m_imgnamelists.size(); ++i){
+            ui->fileLists->insertItem(i, filepath + "/" + m_imgnamelists[i]);
+        }
         //qDebug()<<imgNameList[0];
-        ui->progressBar->setRange(0,m_imgnamelists.count()-1);
+        ui->progressBar->setRange(0,m_imgnamelists.count());
         ui->skip_line->setText("1");
         updateInf();
     }
 
 }
 
-void plot::displayImg()//显示图片
-{
-   const QString imagename=m_filepath+"/"+m_imgnamelists[m_imgid];
-   QPixmap image;
-   image.load(imagename);
-   ui->display_image->setFixedSize(image.width(),image.height());
-   m_imgwidth=image.width();
-   m_imgheight=image.height();
-   m_painter.drawPixmap(0,0,m_imgwidth,m_imgheight,image);
-}
 bool plot::eventFilter(QObject *watched, QEvent *event)
 {
     if(watched==ui->display_image&&event->type()==QEvent::Paint&&!m_imgnamelists.isEmpty()){
         m_painter.begin(ui->display_image);
-        displayImg();
         draw();
         update();
         m_painter.end();
@@ -78,26 +72,31 @@ bool plot::eventFilter(QObject *watched, QEvent *event)
     }
     return QWidget::eventFilter(watched,event);
 }
+
 void plot::mousePressEvent(QMouseEvent *event)
 {
     /*if(!m_imgnamelists.isEmpty()&&event->button()==Qt::LeftButton){
-        m_startpoint = event->pos()-(ui->centralWidget->pos()+ui->display_image->pos());
-        emit pressPoint(m_startpoint);
+       m_imgid = ui->fileLists->currentRow();
     }*/
     if(!m_imgnamelists.isEmpty()&&event->button()==Qt::RightButton){
-            int labelid=ui->labels->currentRow();
-            m_labels.addId(labelid);
-            ui->labels->setCurrentRow(labelid);
+        if(ui->rectsTable->currentRow() != -1){
+            ui->rectsTable->setCurrentCell(-1, -1);
+        }else{
+            m_labels.addId();
+        }
+
     }
 
 }
+
 void plot::mouseMoveEvent(QMouseEvent *event)
 {
     if(!m_imgnamelists.isEmpty())
     {
-        m_movepoint=event->pos()-(ui->centralWidget->pos()+ui->display_image->pos());
+        m_movepoint=event->pos()-(ui->centralWidget->pos()+ui->widget->pos()+ui->display_image->pos());
         if(event->buttons()&Qt::LeftButton){
-            m_moverectpoint=m_movepoint;
+            m_moverectpoint.setX(m_movepoint.x() / m_img.getScale()[0]);
+            m_moverectpoint.setY(m_movepoint.y() / m_img.getScale()[1]);
         }else {
             m_moverectpoint.setX(0);
             m_moverectpoint.setY(0);
@@ -105,12 +104,14 @@ void plot::mouseMoveEvent(QMouseEvent *event)
         emit mobilePoint(m_movepoint);
     }
 }
+
 void plot::mouseReleaseEvent(QMouseEvent *event)
 {
     if(!m_imgnamelists.isEmpty()&&event->button()==Qt::LeftButton)
     {
-        m_point=event->pos()-(ui->centralWidget->pos()+ui->display_image->pos());
-        if(m_point.x()>=0&&m_point.x()<=m_imgwidth&&m_point.y()>=0&&m_point.y()<=m_imgheight)//判断点是否在图像内部
+        m_point=event->pos()-(ui->centralWidget->pos()+ui->widget->pos()+ui->display_image->pos());
+        if(m_point.x()>=0&&m_point.x()<=ui->display_image->width()&&
+           m_point.y()>=0&&m_point.y()<=ui->display_image->height())//判断点是否在图像内部
         {
             m_pairpoint.append(m_point);
             if(m_pairpoint.count()==2){
@@ -124,45 +125,39 @@ void plot::mouseReleaseEvent(QMouseEvent *event)
                     m_pairpoint[0].setY(m_pairpoint[1].y());
                     m_pairpoint[1].setY(y);
                 }
-                int labelid = ui->labels->currentRow();
-                QListWidgetItem *item = ui->labels->item(labelid);
-                m_rectinf.label = item->text();
-                m_rectinf.minPoint = m_pairpoint[0];
-                m_rectinf.maxPoint = m_pairpoint[1];
-                m_rects.append(m_rectinf);
-                QString displayinf = rectinf2string(m_rectinf);
-                ui->plot_labels->insertItem(m_numrects, displayinf);
-                ++m_numrects;
-                m_pairpoint.clear();
+                setRectinf();
             }
         }
 
         emit releasePoint(m_point);
     }
 }
+
 void plot::draw()
 {
+    m_img.display(m_painter);
     m_painter.setPen(QPen(Qt::black,1,Qt::SolidLine));
-    m_painter.drawLine(m_movepoint.x(),0,m_movepoint.x(),m_imgheight);
-    m_painter.drawLine(0,m_movepoint.y(),m_imgwidth,m_movepoint.y());
+    m_painter.drawLine(m_movepoint.x(),0,m_movepoint.x(),ui->display_image->height());
+    m_painter.drawLine(0,m_movepoint.y(),ui->display_image->width(),m_movepoint.y());
     if(!m_pairpoint.isEmpty()){
         m_painter.setPen(QPen(Qt::red,2,Qt::SolidLine));
         m_painter.drawPoints(m_pairpoint);
     }
-
-    m_rects.drawRects(m_painter);
-    int id = ui->plot_labels->currentRow();
-    if(id>=0 && id<ui->plot_labels->count()){
-        RectInf& t_rect = m_rects.selectRect(id, m_painter);
+    m_rects.drawRects(m_painter, m_img.getScale());
+    int id = ui->rectsTable->currentRow();
+    if(id!=-1){
+        RectInf& t_rect = m_rects.selectRect(id, m_painter, m_img.getScale());
         moveRectLine(t_rect.minPoint, t_rect.maxPoint);
-        QString displayinf = rectinf2string(t_rect);
-        QListWidgetItem *item=ui->plot_labels->takeItem(id);
-        delete item;
-        ui->plot_labels->insertItem(id, displayinf);
-        ui->plot_labels->setCurrentRow(id);
+        m_rects.setRowInf(id, t_rect);
+    }
+
+    if(ui->fileLists->currentRow() != m_imgid){
+        m_imgid = ui->fileLists->currentRow();
+        updateInf();
     }
 
 }
+
 void plot::save()
 {
     if(m_imgnamelists.isEmpty()){
@@ -174,20 +169,24 @@ void plot::save()
     m_rects.save(m_imgnamelists[m_imgid]);
     ui->caption->setText("保存成功！");
 }
+
 void plot::recover()
 {
-  m_rects.recover(m_imgnamelists[m_imgid], ui->plot_labels);
+  m_rects.recover(m_imgnamelists[m_imgid]);
 }
+
 void plot::updateInf()
 {
+    ui->fileLists->setCurrentRow(m_imgid);
     QString ratioDeal=QString("%1").arg(m_imgid+1)+"/"+QString("%1").arg(m_imgnamelists.count());
     ui->lineEdit->setText(ratioDeal);
     ui->progressBar->setValue(m_imgid);
-    ui->caption->setText("No."+QString("%1").arg(m_imgid+1)+": "+m_imgnamelists[m_imgid]);
-    m_pairpoint.clear();
+    ui->caption->setText("No."+QString("%1").arg(m_imgid+1)+": "+m_imgnamelists[m_imgid]); 
+    m_img.imread(m_imgnamelists[m_imgid]);
     recover();
-    m_numrects = ui->plot_labels->count();
+    m_pairpoint.clear();
 }
+
 void plot::preImg()
 {
     if(m_imgnamelists.isEmpty()){
@@ -206,6 +205,7 @@ void plot::preImg()
         updateInf();
     }
 }
+
 void plot::nextImg()
 {
     if(m_imgnamelists.isEmpty()){
@@ -224,6 +224,7 @@ void plot::nextImg()
         updateInf();
     }
 }
+
 void plot::skipImg()
 {
     if(m_imgnamelists.isEmpty()){
@@ -239,41 +240,20 @@ void plot::skipImg()
     }
     updateInf();
 }
+
 void plot::windowClose()
 {
+    save();
     this->close();
 }
 void plot::deleteRect()
 {
-    int id = ui->plot_labels->currentRow();
-    if(id>=0 && id<ui->plot_labels->count()){
-        QListWidgetItem *item=ui->plot_labels->takeItem(id);
-        delete item;
-        m_rects.deleteRect(id);
-        --m_numrects;
-        m_pairpoint.clear();
-    }
+    m_rects.deleteRect();
+    m_pairpoint.clear();
 }
+
 void plot::keyPressEvent(QKeyEvent *event)
 {
-//    if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_C){
-//        m_pairpoint.clear();
-//        if(saveInf.find(imgNameList[currentImg])!=saveInf.end()){
-//            saveInf[imgNameList[currentImg]].pop_back();
-//            ui->plot_labels->clear();
-//            if(saveInf[imgNameList[currentImg]].empty()){
-//                auto mapIt=saveInf.find(imgNameList[currentImg]);
-//                saveInf.erase(mapIt);
-//            }else{
-//                currentDrawRect=0;
-//                for(const auto &plotLabel:saveInf[imgNameList[currentImg]]){
-//                    ui->plot_labels->insertItem(currentDrawRect,labelLists[plotLabel.label].split(" ")[1]);
-//                    ++currentDrawRect;
-//                }
-//            }
-//        }
-//        return;
-//    }
     if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_S){
         nextImg();
         return;
@@ -288,42 +268,89 @@ void plot::keyPressEvent(QKeyEvent *event)
     }
     QWidget::keyPressEvent(event);
 }
+
 void plot::moveRectLine(QPoint &point1, QPoint &point2)
 {
     int interval = 20;
-    if(abs(m_movepoint.x()-point1.x())<interval &&
-       abs(m_movepoint.y()-point1.y())<interval){
+    QPoint movepoint;
+    movepoint.setX(m_movepoint.x() / m_img.getScale()[0]);
+    movepoint.setY(m_movepoint.y() / m_img.getScale()[1]);
+    if(abs(movepoint.x()-point1.x())<interval &&
+       abs(movepoint.y()-point1.y())<interval){
         this->setCursor(Qt::SizeFDiagCursor);
         if(m_moverectpoint.x()!=0||m_moverectpoint.y()!=0){
             point1.setX(m_moverectpoint.x());
             point1.setY(m_moverectpoint.y());
             m_pairpoint.clear();
         }
-    }else if(abs(m_movepoint.x()-point2.x())<interval &&
-             abs(m_movepoint.y()-point2.y())<interval){
+    }else if(abs(movepoint.x()-point2.x())<interval &&
+             abs(movepoint.y()-point2.y())<interval){
         this->setCursor(Qt::SizeFDiagCursor);
         if(m_moverectpoint.x()!=0||m_moverectpoint.y()!=0){
             point2.setX(m_moverectpoint.x());
             point2.setY(m_moverectpoint.y());
             m_pairpoint.clear();
         }
-    }else if(abs(m_movepoint.x()-point2.x())<interval &&
-             abs(m_movepoint.y()-point1.y())<interval){
+    }else if(abs(movepoint.x()-point2.x())<interval &&
+             abs(movepoint.y()-point1.y())<interval){
         this->setCursor(Qt::SizeBDiagCursor);
         if(m_moverectpoint.x()!=0||m_moverectpoint.y()!=0){
             point2.setX(m_moverectpoint.x());
             point1.setY(m_moverectpoint.y());
             m_pairpoint.clear();
         }
-    }else if(abs(m_movepoint.x()-point1.x())<interval &&
-             abs(m_movepoint.y()-point2.y())<interval){
+    }else if(abs(movepoint.x()-point1.x())<interval &&
+             abs(movepoint.y()-point2.y())<interval){
         this->setCursor(Qt::SizeBDiagCursor);
         if(m_moverectpoint.x()!=0||m_moverectpoint.y()!=0){
             point1.setX(m_moverectpoint.x());
             point2.setY(m_moverectpoint.y());
             m_pairpoint.clear();
         }
-    }else {
+    }else if(abs(movepoint.x() - point1.x())<interval &&
+             movepoint.y() >= point1.y() && movepoint.y() <= point2.y()){
+        this->setCursor(Qt::SizeHorCursor);
+        if(m_moverectpoint.x()!=0||m_moverectpoint.y()!=0){
+            point1.setX(m_moverectpoint.x());
+            m_pairpoint.clear();
+        }
+    }else if(abs(movepoint.y() - point1.y())<interval &&
+             movepoint.x() >= point1.x() && movepoint.x() <= point2.x()){
+        this->setCursor(Qt::SizeVerCursor);
+        if(m_moverectpoint.x()!=0||m_moverectpoint.y()!=0){
+            point1.setY(m_moverectpoint.y());
+            m_pairpoint.clear();
+        }
+    }else if(abs(movepoint.x() - point2.x())<interval &&
+             movepoint.y() >= point1.y() && movepoint.y() <= point2.y()){
+        this->setCursor(Qt::SizeHorCursor);
+        if(m_moverectpoint.x()!=0||m_moverectpoint.y()!=0){
+            point2.setX(m_moverectpoint.x());
+            m_pairpoint.clear();
+        }
+    }else if(abs(movepoint.y() - point2.y())<interval &&
+             movepoint.x() >= point1.x() && movepoint.x() <= point2.x()){
+        this->setCursor(Qt::SizeVerCursor);
+        if(m_moverectpoint.x()!=0||m_moverectpoint.y()!=0){
+            point2.setY(m_moverectpoint.y());
+            m_pairpoint.clear();
+        }
+    }else{
         this->setCursor(Qt::ArrowCursor);
     }
+}
+
+void plot::setRectinf(){
+    m_rectinf.label = m_labels.getCurrentLabel();
+    QPoint temp_point;
+    temp_point.setX(m_pairpoint[0].x() / m_img.getScale()[0]);
+    temp_point.setY(m_pairpoint[0].y() / m_img.getScale()[1]);
+    m_rectinf.minPoint = temp_point;
+    temp_point.setX(m_pairpoint[1].x() / m_img.getScale()[0]);
+    temp_point.setY(m_pairpoint[1].y() / m_img.getScale()[1]);
+    m_rectinf.maxPoint = temp_point;
+    m_rectinf.width  = m_img.getWidth();
+    m_rectinf.height = m_img.getHeight();
+    m_rects.insert(m_rectinf);
+    m_pairpoint.clear();
 }

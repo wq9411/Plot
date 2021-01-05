@@ -5,6 +5,7 @@
 #include <QString>
 #include <QPainter>
 #include <QListWidget>
+#include <QTableWidget>
 #include "csv.h"
 
 struct RectInf
@@ -12,6 +13,8 @@ struct RectInf
     QPoint minPoint;
     QPoint maxPoint;
     QString label;
+    int height;
+    int width;
 };
 
 QString rectinf2string(const RectInf& rect);
@@ -19,30 +22,37 @@ QString rectinf2string(const RectInf& rect);
 class Rectangle
 {
 public:
-    Rectangle(){}
+    Rectangle():m_rects_table(nullptr){}
+    void init(QTableWidget *rectTable);
+    void setHeader();
+    void setFileRoot(const QString& fileroot);
+    void setRowInf(int rowId, RectInf& rect);
     void append(RectInf& rect);
+    void insert(RectInf& rect);
     void clear();
-    void deleteRect(int id);
-    void setFileroot(const QString& fileroot);
+    void deleteRect();
     void save(const QString& imgname);
-    void recover(const QString& imgname, QListWidget *rectWidget);
-    void drawRects(QPainter& painter);
-    RectInf& selectRect(int id, QPainter& painter);
+    void recover(const QString& imgname);
+    void drawRects(QPainter& painter, const float* scale);
+    RectInf& selectRect(int id, QPainter& painter, const float* scale);
 
 private:
+    QTableWidget* m_rects_table;
     QVector<RectInf> m_rects;
-    QString m_fileroot;
+    QString m_file_root;
     CSV_OP m_csv_op;
 };
 
 class Labels
 {
 public:
-    Labels(){}
-    void init(QListWidget *labelWidget);
-    void addId(int& labelid);
+    Labels():m_labels_table(nullptr){}
+    void init(QTableWidget *labelTable);
+    void addId();
+    QString getCurrentLabel();
 
 private:
+    QTableWidget* m_labels_table;
     QStringList m_labels;
     CSV_OP m_csv_op;
 };

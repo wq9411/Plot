@@ -28,12 +28,14 @@ SOURCES += \
         main.cpp \
         plot.cpp \
     csv.cpp \
-    rectangle.cpp
+    rectangle.cpp \
+    image.cpp
 
 HEADERS += \
         plot.h \
     csv.h \
-    rectangle.h
+    rectangle.h \
+    image.h
 
 FORMS += \
         plot.ui

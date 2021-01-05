@@ -3,7 +3,7 @@
 #include <QFile>
 #include <QTextStream>
 
-CSV_OP::CSV_OP(): m_header("label,start_x,start_y,end_x,end_y") {}
+CSV_OP::CSV_OP(): m_header("label,start_x,start_y,end_x,end_y,width,height") {}
 
 void CSV_OP::reader(const QString &filename, QStringList& lists){
     QFile file(filename);
