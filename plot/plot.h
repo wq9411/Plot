@@ -32,6 +32,11 @@ public slots:
     void deleteRect();
     void skipImg();
     void windowClose();
+    void adjustBrightness(int brightness);
+    void adjustContrast(int contrast);
+    void resetBrightness();
+    void resetContrast();
+    void clear();
 
 protected:
    bool eventFilter(QObject *watched,QEvent *event);

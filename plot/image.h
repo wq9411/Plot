@@ -9,7 +9,7 @@
 class Image
 {
 public:
-    Image():m_canvas(nullptr), m_scale({1.0, 1.0}) {}
+    Image():m_canvas(nullptr){}
     ~Image() {}
     void init(QLabel* canvas);
     int getWidth() {return m_width;}
@@ -18,12 +18,14 @@ public:
     void setFileRoot(QString &fileroot) {m_file_root = fileroot;}
     void imread(QString &imgname);
     void display(QPainter &painter);
-
+    void adjustBrightness(int brightness);
+    void adjustContrast(int contrast);
 
 
 private:
     QLabel* m_canvas;
-    QPixmap m_image;
+    QImage m_image;
+    QImage m_image_orig;
     QString m_file_root;
     int m_width;
     int m_height;

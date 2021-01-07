@@ -16,7 +16,7 @@ plot::plot(QWidget *parent) :
     ui->setupUi(this);
     ui->display_image->installEventFilter(this);
     ui->widget->setMouseTracking(true);
-    ui->centralWidget->setMouseTracking(true);  
+    ui->centralWidget->setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);    
     connect(ui->open_floder,SIGNAL(clicked(bool)),this,SLOT(openFloder()));
@@ -26,6 +26,11 @@ plot::plot(QWidget *parent) :
     connect(ui->delete_button,SIGNAL(clicked(bool)),this,SLOT(deleteRect()));
     connect(ui->skip,SIGNAL(clicked(bool)),this,SLOT(skipImg()));
     connect(ui->exit,SIGNAL(clicked(bool)),this,SLOT(windowClose()));
+    connect(ui->clear,SIGNAL(clicked(bool)),this,SLOT(clear()));
+    connect(ui->brightness, SIGNAL(valueChanged(int)), this, SLOT(adjustBrightness(int)));
+    connect(ui->contrast, SIGNAL(valueChanged(int)),this,SLOT(adjustContrast(int)));
+    connect(ui->reset_brightness, SIGNAL(clicked(bool)),this,SLOT(resetBrightness()));
+    connect(ui->reset_contrast,SIGNAL(clicked(bool)),this,SLOT(resetContrast()));
     m_imgid = 0;
     m_img.init(ui->display_image);
     m_rects.init(ui->rectsTable);
@@ -50,6 +55,11 @@ void plot::openFloder() //打开图片文件夹
         QStringList namefilters;
         namefilters<<"*.jpg"<<"*.png"<<"*.jpeg";
         m_imgnamelists = dir.entryList(namefilters,QDir::Files|QDir::Readable,QDir::Name);
+        if(m_imgnamelists.isEmpty()){
+            QMessageBox::information(this, tr("提示"),
+                                     tr("文件夹为空!"));
+            return;
+        }
         for(int i=0; i<m_imgnamelists.size(); ++i){
             ui->fileLists->insertItem(i, filepath + "/" + m_imgnamelists[i]);
         }
@@ -178,11 +188,13 @@ void plot::recover()
 void plot::updateInf()
 {
     ui->fileLists->setCurrentRow(m_imgid);
-    QString ratioDeal=QString("%1").arg(m_imgid+1)+"/"+QString("%1").arg(m_imgnamelists.count());
-    ui->lineEdit->setText(ratioDeal);
+    //QString ratioDeal=QString("%1").arg(m_imgid+1)+"/"+QString("%1").arg(m_imgnamelists.count());
+    //ui->lineEdit->setText(ratioDeal);
     ui->progressBar->setValue(m_imgid);
     ui->caption->setText("No."+QString("%1").arg(m_imgid+1)+": "+m_imgnamelists[m_imgid]); 
     m_img.imread(m_imgnamelists[m_imgid]);
+    ui->brightness->setValue(0);
+    ui->contrast->setValue(0);
     recover();
     m_pairpoint.clear();
 }
@@ -252,6 +264,31 @@ void plot::deleteRect()
     m_pairpoint.clear();
 }
 
+void plot::clear()
+{
+    m_rects.clear();
+}
+
+void plot::adjustBrightness(int brightness){
+    if(!m_imgnamelists.isEmpty()){
+        m_img.adjustBrightness(brightness);
+    }
+}
+
+void plot::adjustContrast(int contrast){
+    if(!m_imgnamelists.isEmpty()){
+        m_img.adjustContrast(contrast);
+    }
+}
+
+void plot::resetBrightness(){
+    ui->brightness->setValue(0);
+}
+
+void plot::resetContrast(){
+    ui->contrast->setValue(0);
+}
+
 void plot::keyPressEvent(QKeyEvent *event)
 {
     if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_S){
@@ -271,7 +308,7 @@ void plot::keyPressEvent(QKeyEvent *event)
 
 void plot::moveRectLine(QPoint &point1, QPoint &point2)
 {
-    int interval = 20;
+    int interval = 10;
     QPoint movepoint;
     movepoint.setX(m_movepoint.x() / m_img.getScale()[0]);
     movepoint.setY(m_movepoint.y() / m_img.getScale()[1]);
