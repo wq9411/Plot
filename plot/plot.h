@@ -13,17 +13,17 @@
 #include "image.h"
 
 namespace Ui {
-class plot;
+class plotUi;
 }
 
-class plot : public QMainWindow
+class Plot : public QMainWindow
 {
     Q_OBJECT
 
 
 public:
-    explicit plot(QWidget *parent = nullptr);
-    ~plot();
+    explicit Plot(QWidget *parent = nullptr);
+    ~Plot();
 public slots:
     void openFloder();
     void save();
@@ -37,6 +37,7 @@ public slots:
     void resetBrightness();
     void resetContrast();
     void clear();
+    void clickedFileLists();
 
 protected:
    bool eventFilter(QObject *watched,QEvent *event);
@@ -51,7 +52,7 @@ signals:
    void releasePoint(QPoint e);
 
 private:
-    Ui::plot *ui;
+    Ui::plotUi *ui;
     QPainter m_painter; //画笔
     Labels m_labels;   //标签信息
     RectInf m_rectinf; //当前标注信息

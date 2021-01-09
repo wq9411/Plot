@@ -24,7 +24,7 @@ public:
 
 private:
     QLabel* m_canvas;
-    QImage m_image;
+    QImage m_image_show;
     QImage m_image_orig;
     QString m_file_root;
     int m_width;

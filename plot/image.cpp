@@ -8,15 +8,15 @@ void Image::init(QLabel *canvas){
 
 void Image::imread(QString &imgname){
     QString imgfile = m_file_root + "/" + imgname;
-    m_image.load(imgfile);
+    m_image_show.load(imgfile);
     m_image_orig.load(imgfile);;
-    m_width = m_image.width();
-    m_height = m_image.height();
+    m_width = m_image_orig.width();
+    m_height = m_image_orig.height();
 }
 
 void Image::display(QPainter &painter){
     //canvas->setFixedSize(m_width, m_height);
-    QPixmap pixmap2show = QPixmap::fromImage(m_image);
+    QPixmap pixmap2show = QPixmap::fromImage(m_image_show);
     m_scale[0] = float(m_canvas->width()) / m_width;
     m_scale[1] = float(m_canvas->height()) / m_height;
     painter.drawPixmap(0, 0, m_canvas->width(), m_canvas->height(), pixmap2show);
@@ -38,7 +38,7 @@ void Image::adjustBrightness(int brightness){
         blue =  (blue  < 0x00) ? 0x00 : (blue  > 0xff) ? 0xff : blue ;
         data[i] = qRgba(red, green, blue, qAlpha(data[i]));
     }
-    m_image = tmp_image;
+    m_image_show = tmp_image;
 }
 
 void Image::adjustContrast(int contrast){
@@ -84,5 +84,5 @@ void Image::adjustContrast(int contrast){
             data[i] = qRgba(red, green, blue, qAlpha(data[i]));
         }
     }
-    m_image = tmp_image;
+    m_image_show = tmp_image;
 }

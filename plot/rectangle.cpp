@@ -2,6 +2,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QHeaderView>
+#include <QDebug>
 
 QString rectinf2string(const RectInf &rect){
     QString str = rect.label + "," + QString::number(rect.minPoint.x())
@@ -80,12 +81,18 @@ void Rectangle::save(const QString &imgname){
         QString str = rectinf2string(m_rects[i]);
         saveinf.append(str);
     }
-    QString savepath = m_file_root + "/" + imgname.split(".")[0] + ".csv";
+    QStringList tmp_name = imgname.split(".");
+    int index = tmp_name.size() - 1;
+    tmp_name[index] = "csv";
+    QString savepath = m_file_root + "/" + tmp_name.join(".");
     m_csv_op.writer(savepath, saveinf);
 }
 
 void Rectangle::recover(const QString &imgname){
-    QString filepath = m_file_root + "/" + imgname.split(".")[0] + ".csv";
+    QStringList tmp_name = imgname.split(".");
+    int index = tmp_name.size() - 1;
+    tmp_name[index] = "csv";
+    QString filepath = m_file_root + "/" + tmp_name.join(".");
     clear();
     QFileInfo file(filepath);
     if (file.exists()){

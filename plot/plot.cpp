@@ -10,8 +10,8 @@
 #include <QDebug>
 
 
-plot::plot(QWidget *parent) :
-    QMainWindow(parent), ui(new Ui::plot)
+Plot::Plot(QWidget *parent) :
+    QMainWindow(parent), ui(new Ui::plotUi)
 {
     ui->setupUi(this);
     ui->display_image->installEventFilter(this);
@@ -31,18 +31,19 @@ plot::plot(QWidget *parent) :
     connect(ui->contrast, SIGNAL(valueChanged(int)),this,SLOT(adjustContrast(int)));
     connect(ui->reset_brightness, SIGNAL(clicked(bool)),this,SLOT(resetBrightness()));
     connect(ui->reset_contrast,SIGNAL(clicked(bool)),this,SLOT(resetContrast()));
+    connect(ui->fileLists, SIGNAL(clicked(QModelIndex)), this, SLOT(clickedFileLists()));
     m_imgid = 0;
     m_img.init(ui->display_image);
     m_rects.init(ui->rectsTable);
     m_labels.init(ui->labels);
 }
 
-plot::~plot()
+Plot::~Plot()
 {
     delete ui;
 }
 
-void plot::openFloder() //打开图片文件夹
+void Plot::openFloder() //打开图片文件夹
 {
     QString filepath=QFileDialog::getExistingDirectory(this,tr("图片路径"),".");
     if(filepath.isEmpty()){
@@ -64,14 +65,14 @@ void plot::openFloder() //打开图片文件夹
             ui->fileLists->insertItem(i, filepath + "/" + m_imgnamelists[i]);
         }
         //qDebug()<<imgNameList[0];
-        ui->progressBar->setRange(0,m_imgnamelists.count());
+        ui->progressBar->setRange(0,m_imgnamelists.count()-1);
         ui->skip_line->setText("1");
         updateInf();
     }
 
 }
 
-bool plot::eventFilter(QObject *watched, QEvent *event)
+bool Plot::eventFilter(QObject *watched, QEvent *event)
 {
     if(watched==ui->display_image&&event->type()==QEvent::Paint&&!m_imgnamelists.isEmpty()){
         m_painter.begin(ui->display_image);
@@ -83,7 +84,7 @@ bool plot::eventFilter(QObject *watched, QEvent *event)
     return QWidget::eventFilter(watched,event);
 }
 
-void plot::mousePressEvent(QMouseEvent *event)
+void Plot::mousePressEvent(QMouseEvent *event)
 {
     /*if(!m_imgnamelists.isEmpty()&&event->button()==Qt::LeftButton){
        m_imgid = ui->fileLists->currentRow();
@@ -99,7 +100,7 @@ void plot::mousePressEvent(QMouseEvent *event)
 
 }
 
-void plot::mouseMoveEvent(QMouseEvent *event)
+void Plot::mouseMoveEvent(QMouseEvent *event)
 {
     if(!m_imgnamelists.isEmpty())
     {
@@ -115,7 +116,7 @@ void plot::mouseMoveEvent(QMouseEvent *event)
     }
 }
 
-void plot::mouseReleaseEvent(QMouseEvent *event)
+void Plot::mouseReleaseEvent(QMouseEvent *event)
 {
     if(!m_imgnamelists.isEmpty()&&event->button()==Qt::LeftButton)
     {
@@ -143,7 +144,7 @@ void plot::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void plot::draw()
+void Plot::draw()
 {
     m_img.display(m_painter);
     m_painter.setPen(QPen(Qt::black,1,Qt::SolidLine));
@@ -161,14 +162,16 @@ void plot::draw()
         m_rects.setRowInf(id, t_rect);
     }
 
+}
+
+void Plot::clickedFileLists(){
     if(ui->fileLists->currentRow() != m_imgid){
         m_imgid = ui->fileLists->currentRow();
         updateInf();
     }
-
 }
 
-void plot::save()
+void Plot::save()
 {
     if(m_imgnamelists.isEmpty()){
         QMessageBox::information(this, tr("提示"),
@@ -180,12 +183,12 @@ void plot::save()
     ui->caption->setText("保存成功！");
 }
 
-void plot::recover()
+void Plot::recover()
 {
   m_rects.recover(m_imgnamelists[m_imgid]);
 }
 
-void plot::updateInf()
+void Plot::updateInf()
 {
     ui->fileLists->setCurrentRow(m_imgid);
     //QString ratioDeal=QString("%1").arg(m_imgid+1)+"/"+QString("%1").arg(m_imgnamelists.count());
@@ -199,7 +202,7 @@ void plot::updateInf()
     m_pairpoint.clear();
 }
 
-void plot::preImg()
+void Plot::preImg()
 {
     if(m_imgnamelists.isEmpty()){
         QMessageBox::information (this, tr("提示"),
@@ -218,7 +221,7 @@ void plot::preImg()
     }
 }
 
-void plot::nextImg()
+void Plot::nextImg()
 {
     if(m_imgnamelists.isEmpty()){
         QMessageBox::information (this, tr("提示"),
@@ -237,7 +240,7 @@ void plot::nextImg()
     }
 }
 
-void plot::skipImg()
+void Plot::skipImg()
 {
     if(m_imgnamelists.isEmpty()){
         QMessageBox::information (this, tr("提示"),
@@ -253,60 +256,65 @@ void plot::skipImg()
     updateInf();
 }
 
-void plot::windowClose()
+void Plot::windowClose()
 {
     save();
     this->close();
 }
-void plot::deleteRect()
+void Plot::deleteRect()
 {
     m_rects.deleteRect();
     m_pairpoint.clear();
 }
 
-void plot::clear()
+void Plot::clear()
 {
     m_rects.clear();
 }
 
-void plot::adjustBrightness(int brightness){
+void Plot::adjustBrightness(int brightness){
     if(!m_imgnamelists.isEmpty()){
         m_img.adjustBrightness(brightness);
     }
 }
 
-void plot::adjustContrast(int contrast){
+void Plot::adjustContrast(int contrast){
     if(!m_imgnamelists.isEmpty()){
         m_img.adjustContrast(contrast);
     }
 }
 
-void plot::resetBrightness(){
+void Plot::resetBrightness(){
     ui->brightness->setValue(0);
 }
 
-void plot::resetContrast(){
+void Plot::resetContrast(){
     ui->contrast->setValue(0);
 }
 
-void plot::keyPressEvent(QKeyEvent *event)
+void Plot::keyPressEvent(QKeyEvent *event)
 {
-    if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_S){
+    if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_S&&event->modifiers()==Qt::ControlModifier){
+        save();
+        return;
+    }
+    if(!m_imgnamelists.isEmpty()&&(event->key()==Qt::Key_S || event->key()==Qt::Key_Down)){
         nextImg();
         return;
     }
-    if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_W){
+    if(!m_imgnamelists.isEmpty()&&(event->key()==Qt::Key_W || event->key()==Qt::Key_Up)){
         preImg();
         return;
     }
-    if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_Z){
+    if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_Delete){
         deleteRect();
         return;
     }
+
     QWidget::keyPressEvent(event);
 }
 
-void plot::moveRectLine(QPoint &point1, QPoint &point2)
+void Plot::moveRectLine(QPoint &point1, QPoint &point2)
 {
     int interval = 10;
     QPoint movepoint;
@@ -377,7 +385,7 @@ void plot::moveRectLine(QPoint &point1, QPoint &point2)
     }
 }
 
-void plot::setRectinf(){
+void Plot::setRectinf(){
     m_rectinf.label = m_labels.getCurrentLabel();
     QPoint temp_point;
     temp_point.setX(m_pairpoint[0].x() / m_img.getScale()[0]);
