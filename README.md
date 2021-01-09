@@ -12,7 +12,7 @@
 - s or down: next image
 ### Mouse operation
 - Select labeled box  
-The left mouse button can change the selected label box. Right click to deselect.
+The left mouse button can change the selected label box. Right click to deselect.  
 ![Image text](https://github.com/wq9411/Plot/blob/master/picture/select_bbox.png)
 - Select label  
 Right-click to switch labels, add one each time.
