@@ -1,6 +1,6 @@
 # Plotting software
 ## Interface
-![Image text](C:/Users/16476/Desktop/interface.png)
+![Image text](https://github.com/wq9411/Plot/blob/master/picture/interface.png)
 
 ---
 ## Function
@@ -13,13 +13,14 @@
 ### Mouse operation
 - Select labeled box  
 The left mouse button can change the selected label box. Right click to deselect.
-![Image text]
+![Image text](https://github.com/wq9411/Plot/blob/master/picture/select_bbox.png)
 - Select label  
 Right-click to switch labels, add one each time.
 ### Save type
-- .csv
-
+- .csv  
+Pre image is saved as a csv file.  
+![Image text](https://github.com/wq9411/Plot/blob/master/picture/save.png)
 ---
 ## Follow-up
-### Add Image Type
-- .dcm(medical image)
+- Add Image Type: *.dcm(medical image)
+- Each label corresponds to a label color
