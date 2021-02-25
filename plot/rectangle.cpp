@@ -2,7 +2,11 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QHeaderView>
+#include <QVector>
 #include <QDebug>
+
+const QVector<Qt::GlobalColor> colors = {Qt::red, Qt::green, Qt::blue, Qt::cyan, Qt::magenta,
+                                     Qt::yellow, Qt::darkRed, Qt::darkGreen, Qt::darkBlue, Qt::darkYellow};
 
 QString rectinf2string(const RectInf &rect){
     QString str = rect.label + "," + QString::number(rect.minPoint.x())
@@ -13,7 +17,8 @@ QString rectinf2string(const RectInf &rect){
     return str;
 }
 
-void Rectangle::init(QTableWidget *rectTable){
+void Rectangle::init(QTableWidget *rectTable, Labels* labels){
+    m_labels = labels;
     m_rects_table = rectTable;
     rectTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     rectTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -120,7 +125,8 @@ void Rectangle::drawRects(QPainter &painter, const float* scale){
             int y = m_rects[i].minPoint.y()*scale[1];
             int w = m_rects[i].maxPoint.x()*scale[0] - x;
             int h = m_rects[i].maxPoint.y()*scale[1] - y;
-            painter.setPen(QPen(Qt::red,2,Qt::SolidLine));//设置画笔形式
+            int colorId = m_labels->getLabelId(m_rects[i].label) % 10;
+            painter.setPen(QPen(colors[colorId],2,Qt::SolidLine));//设置画笔形式
             painter.drawRect(x,y,w,h);
             painter.setPen(QPen(Qt::black,1,Qt::SolidLine));//设置画笔形式
             painter.drawText(x,y,m_rects[i].label);
@@ -172,4 +178,8 @@ void Labels::addId(){
 QString Labels::getCurrentLabel(){
     int label_id = m_labels_table->currentRow();
     return m_labels[label_id];
+}
+
+int Labels::getLabelId(const QString &label){
+    return m_labels.indexOf(label);
 }

@@ -33,9 +33,10 @@ Plot::Plot(QWidget *parent) :
     connect(ui->reset_contrast,SIGNAL(clicked(bool)),this,SLOT(resetContrast()));
     connect(ui->fileLists, SIGNAL(clicked(QModelIndex)), this, SLOT(clickedFileLists()));
     m_imgid = 0;
-    m_img.init(ui->display_image);
-    m_rects.init(ui->rectsTable);
     m_labels.init(ui->labels);
+    m_img.init(ui->display_image);
+    m_rects.init(ui->rectsTable, &m_labels);
+
 }
 
 Plot::~Plot()
@@ -84,11 +85,9 @@ bool Plot::eventFilter(QObject *watched, QEvent *event)
     return QWidget::eventFilter(watched,event);
 }
 
+
 void Plot::mousePressEvent(QMouseEvent *event)
 {
-    /*if(!m_imgnamelists.isEmpty()&&event->button()==Qt::LeftButton){
-       m_imgid = ui->fileLists->currentRow();
-    }*/
     if(!m_imgnamelists.isEmpty()&&event->button()==Qt::RightButton){
         if(ui->rectsTable->currentRow() != -1){
             ui->rectsTable->setCurrentCell(-1, -1);

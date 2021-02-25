@@ -23,7 +23,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 CONFIG += c++11
-
 SOURCES += \
         main.cpp \
         plot.cpp \
@@ -49,4 +48,14 @@ RESOURCES += \
     icon.qrc
 RC_FILE=icon.rc
 
+INCLUDEPATH += 'D:/Program Files/ITK/release/include/ITK-4.13'
+DEPENDPATH += 'D:/Program Files/ITK/release/include/ITK-4.13'
 
+win32:CONFIG(release, debug|release):
+    LIBS += -L'D:\Program Files\ITK\release\lib' -lITKIOGDCM-4.13 \
+        -lITKIOImageBase-4.13 \
+        -lITKImageIntensity-4.13
+win32:CONFIG(debug, debug|release):
+    LIBS += -L'D:\Program Files\ITK\debug\lib' -lITKIOGDCM-4.13 \
+        -lITKIOImageBase-4.13 \
+        -lITKImageIntensity-4.13

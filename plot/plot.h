@@ -38,6 +38,7 @@ public slots:
     void resetContrast();
     void clear();
     void clickedFileLists();
+    //void selectRectInfo();
 
 protected:
    bool eventFilter(QObject *watched,QEvent *event);

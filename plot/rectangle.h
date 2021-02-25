@@ -17,13 +17,15 @@ struct RectInf
     int width;
 };
 
+class Labels;
+
 QString rectinf2string(const RectInf& rect);
 
 class Rectangle
 {
 public:
-    Rectangle():m_rects_table(nullptr){}
-    void init(QTableWidget *rectTable);
+    Rectangle():m_rects_table(nullptr), m_labels(nullptr){}
+    void init(QTableWidget *rectTable, Labels* labels);
     void setHeader();
     void setFileRoot(const QString& fileroot);
     void setRowInf(int rowId, RectInf& rect);
@@ -41,6 +43,7 @@ private:
     QVector<RectInf> m_rects;
     QString m_file_root;
     CSV_OP m_csv_op;
+    Labels* m_labels;
 };
 
 class Labels
@@ -50,6 +53,7 @@ public:
     void init(QTableWidget *labelTable);
     void addId();
     QString getCurrentLabel();
+    int getLabelId(const QString& lable);
 
 private:
     QTableWidget* m_labels_table;
