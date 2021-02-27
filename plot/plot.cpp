@@ -32,6 +32,7 @@ Plot::Plot(QWidget *parent) :
     connect(ui->reset_brightness, SIGNAL(clicked(bool)),this,SLOT(resetBrightness()));
     connect(ui->reset_contrast,SIGNAL(clicked(bool)),this,SLOT(resetContrast()));
     connect(ui->fileLists, SIGNAL(clicked(QModelIndex)), this, SLOT(clickedFileLists()));
+    connect(ui->labels, SIGNAL(clicked(QModelIndex)), this, SLOT(changeSelectRectlabel()));
     m_imgid = 0;
     m_labels.init(ui->labels);
     m_img.init(ui->display_image);
@@ -84,6 +85,7 @@ bool Plot::eventFilter(QObject *watched, QEvent *event)
     }
     return QWidget::eventFilter(watched,event);
 }
+
 
 
 void Plot::mousePressEvent(QMouseEvent *event)
@@ -393,8 +395,17 @@ void Plot::setRectinf(){
     temp_point.setX(m_pairpoint[1].x() / m_img.getScale()[0]);
     temp_point.setY(m_pairpoint[1].y() / m_img.getScale()[1]);
     m_rectinf.maxPoint = temp_point;
-    m_rectinf.width  = m_img.getWidth();
-    m_rectinf.height = m_img.getHeight();
+    //m_rectinf.width  = m_img.getWidth();
+    //m_rectinf.height = m_img.getHeight();
     m_rects.insert(m_rectinf);
     m_pairpoint.clear();
+}
+
+void Plot::changeSelectRectlabel(){
+    int id = ui->rectsTable->currentRow();
+    if(id!=-1){
+        RectInf& t_rect = m_rects.selectRect(id, m_painter, m_img.getScale());
+        t_rect.label = m_labels.getCurrentLabel();
+        m_rects.setRowInf(id, t_rect);
+    }
 }

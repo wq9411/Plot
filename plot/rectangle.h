@@ -13,8 +13,8 @@ struct RectInf
     QPoint minPoint;
     QPoint maxPoint;
     QString label;
-    int height;
-    int width;
+    //int height;
+    //int width;
 };
 
 class Labels;

@@ -1,5 +1,5 @@
 #include "image.h"
-#include "itkConfigure.h"
+/*#include "itkConfigure.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkGDCMImageIO.h"
@@ -73,7 +73,7 @@ int read_dicom_tags(const std::string& filename, char *photometric_interpretatio
  }
 
  return EXIT_SUCCESS;
-}
+}*/
 
 void Image::init(QLabel *canvas){
     m_canvas = canvas;
@@ -83,15 +83,15 @@ void Image::init(QLabel *canvas){
 
 void Image::imread(QString &imgname){
     QString imgfile = m_file_root + "/" + imgname;
-    if (imgname.endsWith(".dcm") || imgname.endsWith(".DCM")){
-        readDCM(imgfile);
-    }else{
+    //if (imgname.endsWith(".dcm") || imgname.endsWith(".DCM")){
+      //  readDCM(imgfile);
+    //}else{
         m_image_show.load(imgfile);
         //m_image_orig.load(imgfile);
         m_image_orig = m_image_show;
         m_width = m_image_orig.width();
         m_height = m_image_orig.height();
-    }
+    //}
 }
 
 void Image::display(QPainter &painter){
@@ -167,7 +167,7 @@ void Image::adjustContrast(int contrast){
     m_image_show = tmp_image;
 }
 
-void Image::readDCM(const QString &filename){
+/*void Image::readDCM(const QString &filename){
     typedef unsigned short InputPixelType;
     const unsigned int   InputDimension = 2;
     typedef itk::Image< InputPixelType, InputDimension> InputImageType;
@@ -273,6 +273,6 @@ std::vector<int> Image::cal_max_min_pixel_data(const unsigned short *dcm_raw_dat
   max_min_pixel_data[1] = pixel_min_val;
 
   return max_min_pixel_data;
- }
+ }*/
 
 

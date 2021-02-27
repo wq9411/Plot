@@ -859,28 +859,6 @@
                </font>
               </property>
              </column>
-             <column>
-              <property name="text">
-               <string>宽度</string>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-             </column>
-             <column>
-              <property name="text">
-               <string>高度</string>
-              </property>
-              <property name="font">
-               <font>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-             </column>
             </widget>
            </item>
            <item row="1" column="0">

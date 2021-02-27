@@ -38,6 +38,7 @@ public slots:
     void resetContrast();
     void clear();
     void clickedFileLists();
+    void changeSelectRectlabel();
     //void selectRectInfo();
 
 protected:

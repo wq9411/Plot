@@ -12,8 +12,8 @@ QString rectinf2string(const RectInf &rect){
     QString str = rect.label + "," + QString::number(rect.minPoint.x())
             + "," + QString::number(rect.minPoint.y()) + ","
             + QString::number(rect.maxPoint.x()) + "," +
-            QString::number(rect.maxPoint.y()) + "," +
-            QString::number(rect.width) + "," + QString::number(rect.height);
+            QString::number(rect.maxPoint.y());// + "," +
+            //QString::number(rect.width) + "," + QString::number(rect.height);
     return str;
 }
 
@@ -29,7 +29,7 @@ void Rectangle::init(QTableWidget *rectTable, Labels* labels){
 void Rectangle::setHeader(){
     QStringList header;
     header << QStringLiteral("标签") << QStringLiteral("起点X坐标") << QStringLiteral("起点Y坐标") <<
-              QStringLiteral("终点X坐标") << QStringLiteral("终点Y坐标") << QStringLiteral("宽度") << QStringLiteral("高度");
+              QStringLiteral("终点X坐标") << QStringLiteral("终点Y坐标");// << QStringLiteral("宽度") << QStringLiteral("高度");
     m_rects_table->setHorizontalHeaderLabels(header);
 }
 
@@ -51,15 +51,15 @@ void Rectangle::setRowInf(int rowId, RectInf &rect){
     QTableWidgetItem *item2 = new QTableWidgetItem(QString::number(rect.minPoint.y()));
     QTableWidgetItem *item3 = new QTableWidgetItem(QString::number(rect.maxPoint.x()));
     QTableWidgetItem *item4 = new QTableWidgetItem(QString::number(rect.maxPoint.y()));
-    QTableWidgetItem *item5 = new QTableWidgetItem(QString::number(rect.width));
-    QTableWidgetItem *item6 = new QTableWidgetItem(QString::number(rect.height));
+    //QTableWidgetItem *item5 = new QTableWidgetItem(QString::number(rect.width));
+    //QTableWidgetItem *item6 = new QTableWidgetItem(QString::number(rect.height));
     m_rects_table->setItem(rowId, 0, item0);
     m_rects_table->setItem(rowId, 1, item1);
     m_rects_table->setItem(rowId, 2, item2);
     m_rects_table->setItem(rowId, 3, item3);
     m_rects_table->setItem(rowId, 4, item4);
-    m_rects_table->setItem(rowId, 5, item5);
-    m_rects_table->setItem(rowId, 6, item6);
+    //m_rects_table->setItem(rowId, 5, item5);
+    //m_rects_table->setItem(rowId, 6, item6);
 }
 
 void Rectangle::clear(){
@@ -111,8 +111,8 @@ void Rectangle::recover(const QString &imgname){
             rect.minPoint.setY(s_rectinf[2].toInt());
             rect.maxPoint.setX(s_rectinf[3].toInt());
             rect.maxPoint.setY(s_rectinf[4].toInt());
-            rect.width = s_rectinf[5].toInt();
-            rect.height = s_rectinf[6].toInt();
+            //rect.width = s_rectinf[5].toInt();
+            //rect.height = s_rectinf[6].toInt();
             insert(rect);
         }
     }
