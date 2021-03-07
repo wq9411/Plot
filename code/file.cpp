@@ -1,11 +1,11 @@
-#include "csv.h"
+#include "file.h"
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
 
-CSV_OP::CSV_OP(): m_header("label,start_x,start_y,end_x,end_y") {}
+File_OP::File_OP(): m_header("label,start_x,start_y,end_x,end_y") {}
 
-void CSV_OP::reader(const QString &filename, QStringList& lists){
+void File_OP::reader(const QString &filename, QStringList& lists){
     QFile file(filename);
     QString line;
     if(file.open(QFile::QIODevice::ReadOnly)){
@@ -19,7 +19,7 @@ void CSV_OP::reader(const QString &filename, QStringList& lists){
     }
 }
 
-void CSV_OP::writer(const QString &filename, const QStringList &lists, bool wr_header){
+void File_OP::writer(const QString &filename, const QStringList &lists, bool wr_header){
     QFile file(filename);
     if(file.open(QIODevice::WriteOnly)){
         QTextStream stream(&file);

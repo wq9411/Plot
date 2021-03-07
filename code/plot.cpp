@@ -47,10 +47,23 @@ Plot::~Plot()
 
 void Plot::openFloder() //打开图片文件夹
 {
-    QString filepath=QFileDialog::getExistingDirectory(this,tr("图片路径"),".");
+    QString cachePath = QDir::currentPath() +  "/cache.txt";
+    QStringList cacheList;
+    QString openDir = ".";
+    QFileInfo file(cachePath);
+    if(file.exists()){
+        m_cache.reader(cachePath, cacheList);
+        QDir dir(cacheList[0]);
+        if(dir.exists())
+            openDir = cacheList[0];
+    }
+    QString filepath=QFileDialog::getExistingDirectory(this,tr("图像路径"), openDir);
     if(filepath.isEmpty()){
         return;
     }else{
+        cacheList.clear();
+        cacheList << filepath;
+        m_cache.writer(cachePath, cacheList, false);
         m_rects.setFileRoot(filepath);
         m_img.setFileRoot(filepath);
         ui->caption->setText("初始化...");
@@ -107,8 +120,14 @@ void Plot::mouseMoveEvent(QMouseEvent *event)
     {
         m_movepoint=event->pos()-(ui->centralWidget->pos()+ui->widget->pos()+ui->display_image->pos());
         if(event->buttons()&Qt::LeftButton){
-            m_moverectpoint.setX(m_movepoint.x() / m_img.getScale()[0]);
-            m_moverectpoint.setY(m_movepoint.y() / m_img.getScale()[1]);
+            int x = static_cast<int>(m_movepoint.x() / m_img.getScale()[0]);
+            int y = static_cast<int>(m_movepoint.y() / m_img.getScale()[1]);
+            x = x < m_img.getWidth() ? x : m_img.getWidth();
+            x = x > 0 ? x : 0;
+            y = y < m_img.getHeight() ? y : m_img.getHeight();
+            y = y > 0 ? y : 0;
+            m_moverectpoint.setX(x);
+            m_moverectpoint.setY(y);
         }else {
             m_moverectpoint.setX(0);
             m_moverectpoint.setY(0);
@@ -200,6 +219,7 @@ void Plot::updateInf()
     ui->brightness->setValue(0);
     ui->contrast->setValue(0);
     recover();
+    this->setCursor(Qt::ArrowCursor);
     m_pairpoint.clear();
 }
 
@@ -299,12 +319,20 @@ void Plot::keyPressEvent(QKeyEvent *event)
         save();
         return;
     }
-    if(!m_imgnamelists.isEmpty()&&(event->key()==Qt::Key_S || event->key()==Qt::Key_Down)){
-        nextImg();
+    if(!m_imgnamelists.isEmpty()&&(event->key()==Qt::Key_S || event->key() == Qt::Key_Right)){
+            nextImg();
+            return;
+    }
+    if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_Down){
+        downSelectRect();
         return;
     }
-    if(!m_imgnamelists.isEmpty()&&(event->key()==Qt::Key_W || event->key()==Qt::Key_Up)){
+    if(!m_imgnamelists.isEmpty()&&(event->key()==Qt::Key_W || event->key() == Qt::Key_Left)){
         preImg();
+        return;
+    }
+    if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_Up){
+        upSelectRect();
         return;
     }
     if(!m_imgnamelists.isEmpty()&&event->key()==Qt::Key_Delete){
@@ -317,7 +345,7 @@ void Plot::keyPressEvent(QKeyEvent *event)
 
 void Plot::moveRectLine(QPoint &point1, QPoint &point2)
 {
-    int interval = 10;
+    int interval = 20;
     QPoint movepoint;
     movepoint.setX(m_movepoint.x() / m_img.getScale()[0]);
     movepoint.setY(m_movepoint.y() / m_img.getScale()[1]);
@@ -408,4 +436,22 @@ void Plot::changeSelectRectlabel(){
         t_rect.label = m_labels.getCurrentLabel();
         m_rects.setRowInf(id, t_rect);
     }
+}
+
+void Plot::downSelectRect(){
+    int id = ui->rectsTable->currentRow();
+    if(id == ui->rectsTable->rowCount() - 1){
+        nextImg();
+        return;
+    }
+    ui->rectsTable->setCurrentCell(id + 1, 0);
+}
+
+void Plot::upSelectRect(){
+    int id = ui->rectsTable->currentRow();
+    if(id == 0 || id == -1){
+        preImg();
+        return;
+    }
+    ui->rectsTable->setCurrentCell(id - 1, 0);
 }

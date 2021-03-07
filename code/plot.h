@@ -40,6 +40,8 @@ public slots:
     void clickedFileLists();
     void changeSelectRectlabel();
     //void selectRectInfo();
+    void downSelectRect();
+    void upSelectRect();
 
 protected:
    bool eventFilter(QObject *watched,QEvent *event);
@@ -64,6 +66,7 @@ private:
     QPoint m_movepoint,m_point,m_moverectpoint;
     QPolygon m_pairpoint;//存储最小点和最大点
     int m_imgid;//当前图像计数
+    File_OP m_cache;
 
     void displayImg();//显示图片
     void draw();//画矩形

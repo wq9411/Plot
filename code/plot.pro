@@ -26,15 +26,15 @@ CONFIG += c++11
 SOURCES += \
         main.cpp \
         plot.cpp \
-    csv.cpp \
     rectangle.cpp \
-    image.cpp
+    image.cpp \
+    file.cpp
 
 HEADERS += \
         plot.h \
-    csv.h \
     rectangle.h \
-    image.h
+    image.h \
+    file.h
 
 FORMS += \
         plot.ui

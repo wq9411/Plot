@@ -6,7 +6,7 @@
 #include <QPainter>
 #include <QListWidget>
 #include <QTableWidget>
-#include "csv.h"
+#include "file.h"
 
 struct RectInf
 {
@@ -42,7 +42,7 @@ private:
     QTableWidget* m_rects_table;
     QVector<RectInf> m_rects;
     QString m_file_root;
-    CSV_OP m_csv_op;
+    File_OP m_csv_op;
     Labels* m_labels;
 };
 
@@ -58,7 +58,7 @@ public:
 private:
     QTableWidget* m_labels_table;
     QStringList m_labels;
-    CSV_OP m_csv_op;
+    File_OP m_csv_op;
 };
 
 #endif // RECTANGLE_H

@@ -1,12 +1,12 @@
-#ifndef CSV_H
-#define CSV_H
+#ifndef FILE_H
+#define FILE_H
 #include <QString>
 #include <QStringList>
 
-class CSV_OP
+class File_OP
 {
 public:
-    CSV_OP();
+    File_OP();
     void reader(const QString& filename, QStringList& lists);
     void writer(const QString& filename, const QStringList& lists, bool wr_header=true);
 

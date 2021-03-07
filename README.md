@@ -8,8 +8,9 @@
 - jpg、png、jpeg
 ### Shortcut_Key: 
 - ctrl+s: save
-- w or up: previous image
-- s or down: next image
+- w or left: previous image
+- s or right: next image
+- up、down: switch box
 ### Mouse operation
 - Select labeled box  
 The left mouse button can change the selected label box. Right click to deselect.  
@@ -23,4 +24,3 @@ Pre image is saved as a csv file.
 ---
 ## Follow-up
 - Add Image Type: *.dcm(medical image)
-- Each label corresponds to a label color
